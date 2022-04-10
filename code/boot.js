@@ -1,19 +1,32 @@
 //https://osu.ppy.sh/wiki/en/Client/File_formats/Osu_%28file_format%29#difficulty
+//cursor.png
 
-import * as OSU from "/libs/OSU.js";
-import * as Oauth from "OSU.oauth.js"
+
+console.log(location.origin)
+
+var locationOSU = `${window.location.href}/libs/OSU.js`
+var locationOAuth = `${window.location.href}/code/OSU.oauth.js`
+
+//import * as OSU from locationOSU
+var OSU = {}
+import(locationOSU).then( mod => OSU = mod )
 
 var ClientToken = ""
 
-Oauth.OpenAuth().then(json => {
+/*
+import(locationOAuth).then( Oauth => {
 
-    ClientToken = json.access_token
+   Oauth.OpenAuth().then(json => {
+
+      ClientToken = json.access_token
         
-    fetch("https://OSUWeb-Server.drmeepso.repl.co/me", {method: "POST", body: JSON.stringify({ "auth": ClientToken })})
-    .then( e => e.json() )
-    .then( json => console.log(json) )
+      fetch("https://OSUWeb-Server.drmeepso.repl.co/me", {method: "POST", body: JSON.stringify({ "auth": ClientToken })})
+      .then( e => e.json() )
+      .then( json => console.log(json) )
 
+   })
 })
+*/
 
 function lerp(v0, v1, t) {
     return v0 * (1 - t) + v1 * t
@@ -33,7 +46,7 @@ function StartGame() {
 
     setTimeout(() => {
 
-        fetch("/Maps/Pumpin' Junkies/map.osu")
+        fetch(`${window.location.href}/Maps/Pumpin' Junkies/map.osu`)
             .then(e => e.text())
             .then(text => {
 
@@ -43,11 +56,12 @@ function StartGame() {
                         MapData = json
                         console.log(MapData)
 
-                        var Song = new Audio("/Maps/Pumpin' Junkies/song.mp3")
+                        var Song = new Audio(`${window.location.href}/Maps/Pumpin' Junkies/song.mp3`)
 
                         Song.addEventListener("canplaythrough", event => {
                             /* the audio is now playable; play it if permissions allow */
                             var QueuedNotes = MapData.HitObjects
+                            var ColorCombo = 0
 
                             Song.play();
 
@@ -64,9 +78,15 @@ function StartGame() {
                                 if ((QueuedNotes[0].time - lerp(1800, 450, MapData.Difficulty.ApproachRate / 10)) < Song.currentTime * 1000) {
 
                                     console.log(MapData.HitObjects[0])
-                                    QueuedNotes.shift()
-                                    var HitCircle = new GameMaker.ImageSprite("HitObject", new GameMaker.Vector2(MapData.HitObjects[0].x, MapData.HitObjects[0].y), new GameMaker.Vector2((54.4 - 4.48 * MapData.Difficulty.CircleSize) / 1, (54.4 - 4.48 * MapData.Difficulty.CircleSize) / 1), 0, "/Skin/hitcircle.png")
-                                    var ApproachCircle = new GameMaker.ImageSprite("ApproachObject", new GameMaker.Vector2(MapData.HitObjects[0].x, MapData.HitObjects[0].y), new GameMaker.Vector2((54.4 - 4.48 * MapData.Difficulty.CircleSize) * 4, (54.4 - 4.48 * MapData.Difficulty.CircleSize) * 4), 0, "/Skin/approachcircle.png")
+
+                                    if (MapData.HitObjects[0].type.isNewCombo) {
+
+                                       ColorCombo += 1
+
+                                    }
+
+                                    var HitCircle = new GameMaker.ImageSprite("HitObject", new GameMaker.Vector2(MapData.HitObjects[0].x, MapData.HitObjects[0].y), new GameMaker.Vector2((54.4 - 4.48 * MapData.Difficulty.CircleSize) / 1, (54.4 - 4.48 * MapData.Difficulty.CircleSize) / 1), 0, `${window.location.href}/Skin/hitcircle.png`)
+                                    var ApproachCircle = new GameMaker.ImageSprite("ApproachObject", new GameMaker.Vector2(MapData.HitObjects[0].x, MapData.HitObjects[0].y), new GameMaker.Vector2((54.4 - 4.48 * MapData.Difficulty.CircleSize) * 4, (54.4 - 4.48 * MapData.Difficulty.CircleSize) * 4), 0, `${window.location.href}/Skin/approachcircle.png`)
                                     HitCircle.Used = false
                                     HitCircle.Active = true
                                     ApproachCircle.parent = HitCircle
@@ -80,6 +100,9 @@ function StartGame() {
 
                                     world.addobjects(HitCircle)
                                     world.addobjects(ApproachCircle)
+
+                                    QueuedNotes.shift()
+
 
                                     setTimeout(() => {
 
