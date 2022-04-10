@@ -2,7 +2,6 @@
 
 import * as OSU from "/libs/OSU.js";
 import * as Oauth from "OSU.oauth.js"
-import * as Oauth2 from "OSU.oauth.js"
 
 var ClientToken = ""
 
