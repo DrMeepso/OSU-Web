@@ -4,9 +4,6 @@ export function OpenAuth() {
 
         var popupWindow = window.open(`https://osu.ppy.sh/oauth/authorize?client_id=13977&redirect_uri=${window.location.origin}&response_type=code&scope=identify`, 'popUpWindow', 'height=800,width=500,left=100,top=100,resizable=no,scrollbars=no,toolbar=yes,menubar=no,location=no,directories=no,status=yes');
         var wait = setInterval(() => {
-                
-            console.log(popupWindow.window.location.href.split("?")[0])
-            console.log(window.location.origin)
 
             if (popupWindow.window.location.href.split("?")[0] == window.location.href) {
 
