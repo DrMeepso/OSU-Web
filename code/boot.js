@@ -1,7 +1,7 @@
 //https://osu.ppy.sh/wiki/en/Client/File_formats/Osu_%28file_format%29#difficulty
 
-import * as OSU from "./libs/OSU.js";
-import * as Oauth from "./code/OSU.oauth.js"
+import * as OSU from "/libs/OSU.js";
+import * as Oauth from "OSU.oauth.js"
 
 var ClientToken = ""
 
