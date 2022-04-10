@@ -33,7 +33,7 @@ function StartGame() {
 
     setTimeout(() => {
 
-        fetch("/Maps/Centipead/map.osu")
+        fetch("/Maps/Pumpin' Junkies/map.osu")
             .then(e => e.text())
             .then(text => {
 
@@ -43,7 +43,7 @@ function StartGame() {
                         MapData = json
                         console.log(MapData)
 
-                        var Song = new Audio("/Maps/Centipead/song.mp3")
+                        var Song = new Audio("/Maps/Pumpin' Junkies/song.mp3")
 
                         Song.addEventListener("canplaythrough", event => {
                             /* the audio is now playable; play it if permissions allow */
@@ -80,6 +80,7 @@ function StartGame() {
 
                                     world.addobjects(HitCircle)
                                     world.addobjects(ApproachCircle)
+
                                     setTimeout(() => {
 
                                         if (HitCircle.Used) return
