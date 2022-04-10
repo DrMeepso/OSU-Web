@@ -9,8 +9,7 @@ export function OpenAuth() {
 
                 clearInterval(wait)
                 popupWindow.close()
-
-
+                
                 fetch("https://OSUWeb-Server.drmeepso.repl.co/oauth/token", { method: "POST", body: JSON.stringify({ "code": popupWindow.window.location.href.split("?")[1].split("=")[1], "uri": window.location.origin }) })
                     .then(responce => responce.json())
                     .then(json => { resolve(json); })

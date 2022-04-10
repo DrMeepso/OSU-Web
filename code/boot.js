@@ -33,7 +33,7 @@ function StartGame() {
 
     setTimeout(() => {
 
-        fetch("/Maps/Pumpin' Junkies/map.osu")
+        fetch("/Maps/Centipead/map.osu")
             .then(e => e.text())
             .then(text => {
 
@@ -43,7 +43,7 @@ function StartGame() {
                         MapData = json
                         console.log(MapData)
 
-                        var Song = new Audio("/Maps/Pumpin' Junkies/song.mp3")
+                        var Song = new Audio("/Maps/Centipead/song.mp3")
 
                         Song.addEventListener("canplaythrough", event => {
                             /* the audio is now playable; play it if permissions allow */
@@ -91,8 +91,12 @@ function StartGame() {
                                         var ApproachTween = new TWEEN.Tween(ApproachCircle)
                                         ApproachTween.to({opacity: 0}, 10).start()
 
-                                        //HitCircle.visible = false
-                                        //ApproachCircle.visible = false
+                                        setTimeout( () => {
+
+                                            HitCircle.visible = false
+                                            ApproachCircle.visible = false
+
+                                        }, 10)
 
                                     }, (lerp(1800, 450, MapData.Difficulty.ApproachRate / 10)))
 
