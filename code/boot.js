@@ -42,6 +42,7 @@ window.addEventListener('resize', () => { world.render() }, false);
 
 var MapData = {}
 
+//Bool is to tell the game that its the bot playing
 StartGame(true)
 
 var Background = new GameMaker.ShapeSprite("BackgroundObject", new GameMaker.Vector2(((512*2)/2), ((384*2)/2)), new GameMaker.Vector2(512*1.5, 384*1.5), 0, "#000000")
