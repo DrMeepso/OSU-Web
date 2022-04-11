@@ -69,11 +69,26 @@ function UpdateCursorTween(AutoNotes, Song, Action, Auto) {
 
 }
 
+var Background = new GameMaker.ShapeSprite("BackgroundObject", new GameMaker.Vector2(((640*1.3)/2), ((480*1.3)/2)), new GameMaker.Vector2(640*1.2, 480*1.2), 0, "#000000")
+world.addobjects(Background)
+
+var MaxX = 0
+
+function OSUpxToRealpx(x,y){
+
+    console.log(x)
+    return new GameMaker.Vector2((x*(Background.size.X/640)) + (Background.pos.X - (Background.size.X/2)),(y*(Background.size.Y/480)) + (Background.pos.Y - (Background.size.Y/2)))
+
+}
+
 function StartGame(Auto) {
+
+    var MaxX = 0
+    var MaxY = 0
 
     setTimeout(() => {
 
-        fetch(`${window.location.href}/Maps/Centipead/map.osu`)
+        fetch(`${window.location.href}/Maps/TestMap/map.osu`)
             .then(e => e.text())
             .then(text => {
 
@@ -83,7 +98,7 @@ function StartGame(Auto) {
                         MapData = json
                         console.log(MapData)
 
-                        var Song = new Audio(`${window.location.href}/Maps/Centipead/song.mp3`)
+                        var Song = new Audio(`${window.location.href}/Maps/TestMap/song.mp3`)
 
                         Song.addEventListener("canplaythrough", event => {
                             /* the audio is now playable; play it if permissions allow */
@@ -99,6 +114,8 @@ function StartGame(Auto) {
                                 if (QueuedNotes.length == 0) {
 
                                     clearInterval(Loop)
+                                    console.log(MaxX)
+                                    console.log(MaxY)
                                     console.log("Map Finished!")
                                     return
 
@@ -109,8 +126,8 @@ function StartGame(Auto) {
                                     console.log(QueuedNotes[0].time - (Song.currentTime * 1000))
                                     if (QueuedNotes.length == MapData.HitObjects.length) {
 
-                                        //Song.currentTime = (QueuedNotes[0].time - 3000) / 1000
-                                        //AutoNotes = []
+                                        Song.currentTime = (QueuedNotes[0].time - 3000) / 1000
+                                        AutoNotes = []
                                         //console.log("Skiped Start")
 
                                     }
@@ -119,7 +136,7 @@ function StartGame(Auto) {
 
                                 if ((QueuedNotes[0].time - lerp(1800, 450, MapData.Difficulty.ApproachRate / 10)) < Song.currentTime * 1000) {
 
-                                    console.log(MapData.HitObjects[0])
+                                    //console.log(MapData.HitObjects[0])
 
                                     if (MapData.HitObjects[0].type.isNewCombo) {
 
@@ -127,11 +144,16 @@ function StartGame(Auto) {
                                        ColorComboIndex = 1
 
                                     }
+
+                                    if (MapData.HitObjects[0].x > MaxX) { MaxX = MapData.HitObjects[0].x }
+                                    if (MapData.HitObjects[0].y > MaxY) { MaxY = MapData.HitObjects[0].y }
+
+
                                     AutoNotes.push(MapData.HitObjects[0])
                                     UpdateCursorTween(AutoNotes, Song, "Add", Auto)
                                     var UUID = uuidv4()
-                                    var HitCircle = new GameMaker.ImageSprite("HitObject", new GameMaker.Vector2(MapData.HitObjects[0].x, MapData.HitObjects[0].y), new GameMaker.Vector2((54.4 - 4.48 * MapData.Difficulty.CircleSize) / 1, (54.4 - 4.48 * MapData.Difficulty.CircleSize) / 1), 0, `${window.location.href}/Skin/hitcircle.png`)
-                                    var ApproachCircle = new GameMaker.ImageSprite("ApproachObject", new GameMaker.Vector2(MapData.HitObjects[0].x, MapData.HitObjects[0].y), new GameMaker.Vector2((54.4 - 4.48 * MapData.Difficulty.CircleSize) * 4, (54.4 - 4.48 * MapData.Difficulty.CircleSize) * 4), 0, `${window.location.href}/Skin/approachcircle.png`)
+                                    var HitCircle = new GameMaker.ImageSprite("HitObject", OSUpxToRealpx(MapData.HitObjects[0].x, MapData.HitObjects[0].y), new GameMaker.Vector2((54.4 - 4.48 * MapData.Difficulty.CircleSize) / 1, (54.4 - 4.48 * MapData.Difficulty.CircleSize) / 1), 0, `${window.location.href}/Skin/hitcircle.png`)
+                                    var ApproachCircle = new GameMaker.ImageSprite("ApproachObject", OSUpxToRealpx(MapData.HitObjects[0].x, MapData.HitObjects[0].y), new GameMaker.Vector2((54.4 - 4.48 * MapData.Difficulty.CircleSize) * 4, (54.4 - 4.48 * MapData.Difficulty.CircleSize) * 4), 0, `${window.location.href}/Skin/approachcircle.png`)
                                     HitCircle.id = UUID
                                     ApproachCircle.id = UUID
                                     HitCircle.Used = false
