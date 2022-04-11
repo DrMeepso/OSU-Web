@@ -1,7 +1,6 @@
 //https://osu.ppy.sh/wiki/en/Client/File_formats/Osu_%28file_format%29#difficulty
 
 var locationOSU = `${window.location.href}/libs/OSU.js`
-var locationOAuth = `${window.location.href}/code/OSU.oauth.js`
 
 //import * as OSU from locationOSU
 var OSU = {}
@@ -10,7 +9,7 @@ import(locationOSU).then( mod => OSU = mod )
 var ClientToken = ""
 
 /*
-import(locationOAuth).then( Oauth => {
+import(`${window.location.href}/code/OSU.oauth.js`).then( Oauth => {
 
    Oauth.OpenAuth().then(json => {
 
@@ -79,7 +78,7 @@ function StartGame(Auto) {
 
     setTimeout(() => {
 
-        fetch(`${window.location.href}/Maps/Pumpin' Junkies/map.osu`)
+        fetch(`${window.location.href}/Maps/HONESTY/map.osu`)
             .then(e => e.text())
             .then(text => {
 
@@ -89,7 +88,7 @@ function StartGame(Auto) {
                         MapData = json
                         console.log(MapData)
 
-                        var Song = new Audio(`${window.location.href}/Maps/Pumpin' Junkies/song.mp3`)
+                        var Song = new Audio(`${window.location.href}/Maps/HONESTY/song.mp3`)
 
                         Song.addEventListener("canplaythrough", event => {
                             /* the audio is now playable; play it if permissions allow */
