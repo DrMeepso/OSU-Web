@@ -28,6 +28,12 @@ import(locationOAuth).then( Oauth => {
 })
 */
 
+function uuidv4() {
+  return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+    (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+  );
+}
+
 function lerp(v0, v1, t) {
     return v0 * (1 - t) + v1 * t
 }
@@ -40,13 +46,34 @@ window.addEventListener('resize', () => { world.render() }, false);
 
 var MapData = {}
 
-StartGame()
+StartGame(true)
 
-function StartGame() {
+var Cursor = new GameMaker.ImageSprite("CursorObject", new GameMaker.Vector2(0, 0), new GameMaker.Vector2(25, 25), 0, `${window.location.href}/Skin/cursor.png`)
+world.addobjects(Cursor)
+Cursor.Tweening = false
+
+
+function UpdateCursorTween(AutoNotes, Song, Action, Auto) {
+
+    if (!Auto) return
+
+    if ((Action == "Add" && AutoNotes.length == 1)||(Action == "Remove" && AutoNotes.length > 0)) {
+
+        var MouseTween = new TWEEN.Tween(Cursor.pos)
+        Cursor.Tweening = true
+        MouseTween.easing(TWEEN.Easing.Cubic.InOut)
+        MouseTween.to({X: AutoNotes[0].x, Y: AutoNotes[0].y}, AutoNotes[0].time - (Song.currentTime * 1000)).start()
+        MouseTween.onStop( () => {Cursor.Tweening = false} )
+
+    }
+
+}
+
+function StartGame(Auto) {
 
     setTimeout(() => {
 
-        fetch(`${window.location.href}/Maps/Pumpin' Junkies/map.osu`)
+        fetch(`${window.location.href}/Maps/Centipead/map.osu`)
             .then(e => e.text())
             .then(text => {
 
@@ -56,12 +83,14 @@ function StartGame() {
                         MapData = json
                         console.log(MapData)
 
-                        var Song = new Audio(`${window.location.href}/Maps/Pumpin' Junkies/song.mp3`)
+                        var Song = new Audio(`${window.location.href}/Maps/Centipead/song.mp3`)
 
                         Song.addEventListener("canplaythrough", event => {
                             /* the audio is now playable; play it if permissions allow */
                             var QueuedNotes = MapData.HitObjects
+                            var AutoNotes = []
                             var ColorCombo = 0
+                            var ColorComboIndex = 1
 
                             Song.play();
 
@@ -75,6 +104,19 @@ function StartGame() {
 
                                 }
 
+                                if (QueuedNotes[0].time - (Song.currentTime * 1000) > 5000) {
+
+                                    console.log(QueuedNotes[0].time - (Song.currentTime * 1000))
+                                    if (QueuedNotes.length == MapData.HitObjects.length) {
+
+                                        //Song.currentTime = (QueuedNotes[0].time - 3000) / 1000
+                                        //AutoNotes = []
+                                        //console.log("Skiped Start")
+
+                                    }
+
+                                }
+
                                 if ((QueuedNotes[0].time - lerp(1800, 450, MapData.Difficulty.ApproachRate / 10)) < Song.currentTime * 1000) {
 
                                     console.log(MapData.HitObjects[0])
@@ -82,11 +124,16 @@ function StartGame() {
                                     if (MapData.HitObjects[0].type.isNewCombo) {
 
                                        ColorCombo += 1
+                                       ColorComboIndex = 1
 
                                     }
-
+                                    AutoNotes.push(MapData.HitObjects[0])
+                                    UpdateCursorTween(AutoNotes, Song, "Add", Auto)
+                                    var UUID = uuidv4()
                                     var HitCircle = new GameMaker.ImageSprite("HitObject", new GameMaker.Vector2(MapData.HitObjects[0].x, MapData.HitObjects[0].y), new GameMaker.Vector2((54.4 - 4.48 * MapData.Difficulty.CircleSize) / 1, (54.4 - 4.48 * MapData.Difficulty.CircleSize) / 1), 0, `${window.location.href}/Skin/hitcircle.png`)
                                     var ApproachCircle = new GameMaker.ImageSprite("ApproachObject", new GameMaker.Vector2(MapData.HitObjects[0].x, MapData.HitObjects[0].y), new GameMaker.Vector2((54.4 - 4.48 * MapData.Difficulty.CircleSize) * 4, (54.4 - 4.48 * MapData.Difficulty.CircleSize) * 4), 0, `${window.location.href}/Skin/approachcircle.png`)
+                                    HitCircle.id = UUID
+                                    ApproachCircle.id = UUID
                                     HitCircle.Used = false
                                     HitCircle.Active = true
                                     ApproachCircle.parent = HitCircle
@@ -100,6 +147,8 @@ function StartGame() {
 
                                     world.addobjects(HitCircle)
                                     world.addobjects(ApproachCircle)
+
+                                    ColorComboIndex += 1
 
                                     QueuedNotes.shift()
 
@@ -115,10 +164,15 @@ function StartGame() {
                                         var ApproachTween = new TWEEN.Tween(ApproachCircle)
                                         ApproachTween.to({opacity: 0}, 10).start()
 
+
                                         setTimeout( () => {
 
-                                            HitCircle.visible = false
-                                            ApproachCircle.visible = false
+                                            
+                                            world.objects = world.objects.filter( e => e.id != UUID )
+                                            AutoNotes.shift()
+                                            UpdateCursorTween(AutoNotes, Song, "Remove", Auto)
+
+                                            
 
                                         }, 10)
 
