@@ -99,6 +99,8 @@ function StartGame(Auto) {
 
                             Song.play();
 
+                            //Song.currentTime = 196224/1000
+
                             var Loop = setInterval(() => {
 
                                 if (QueuedNotes.length == 0) {
@@ -111,6 +113,7 @@ function StartGame(Auto) {
 
                                 if (QueuedNotes[0].time - (Song.currentTime * 1000) > 5000) {
 
+                                    console.log(QueuedNotes[0].time - (Song.currentTime * 1000))
                                     if (QueuedNotes.length == MapData.HitObjects.length) {
 
                                         Song.currentTime = (QueuedNotes[0].time - 3000) / 1000
@@ -122,11 +125,13 @@ function StartGame(Auto) {
 
                                 if ((QueuedNotes[0].time - lerp(1800, 450, MapData.Difficulty.ApproachRate / 10)) < Song.currentTime * 1000) {
 
+                                    //if (QueuedNotes[0].type.type == "spinner") return
+
                                     if (QueuedNotes[0].type.isNewCombo) {
 
-                                       ColorCombo += 1
-                                       ColorComboIndex = 1
-
+                                        ColorCombo += 1
+                                        ColorComboIndex = 1
+ 
                                     }
 
                                     AutoNotes.push(QueuedNotes[0])
@@ -134,12 +139,16 @@ function StartGame(Auto) {
                                     var UUID = uuidv4()
                                     var HitCircle = new GameMaker.ImageSprite("HitObject", OSUpxToRealpx(QueuedNotes[0].x, QueuedNotes[0].y), new GameMaker.Vector2((54.4 - 4.48 * MapData.Difficulty.CircleSize) * (Background.size.X/512), (54.4 - 4.48 * MapData.Difficulty.CircleSize) * (Background.size.Y/384)), 0, `${window.location.href}/Skin/hitcircle.png`)
                                     var ApproachCircle = new GameMaker.ImageSprite("ApproachObject", OSUpxToRealpx(QueuedNotes[0].x, QueuedNotes[0].y), new GameMaker.Vector2(((54.4 - 4.48 * MapData.Difficulty.CircleSize) * 4) * (Background.size.X/512), ((54.4 - 4.48 * MapData.Difficulty.CircleSize) * 4) * (Background.size.Y/384)), 0, `${window.location.href}/Skin/approachcircle.png`)
-                                    
-                                    console.log(HitCircle)
+                                    var ComboIndex = new GameMaker.ImageSprite("HitObject", OSUpxToRealpx(QueuedNotes[0].x, QueuedNotes[0].y), new GameMaker.Vector2(((54.4 - 4.48 * MapData.Difficulty.CircleSize) * (Background.size.X/512)) / 3, ((54.4 - 4.48 * MapData.Difficulty.CircleSize) * (Background.size.Y/384)) / 2), 0, ColorComboIndex >= 9 ? `${window.location.href}/Skin/default-9.png` : `${window.location.href}/Skin/default-${ColorComboIndex}.png` )
+
+                                    ComboIndex.pos.Y -= (((54.4 - 4.48 * MapData.Difficulty.CircleSize) * (Background.size.Y/384)) / 2) /6
+
+                                    console.log(QueuedNotes[0])
 
                                     //Set The UUID of the circals so they can be removed later
                                     HitCircle.id = UUID
                                     ApproachCircle.id = UUID
+                                    ComboIndex.id = UUID
 
                                     //Set Variables
                                     HitCircle.Used = false
@@ -152,12 +161,18 @@ function StartGame(Auto) {
                                     var HitTween = new TWEEN.Tween(HitCircle)
                                     HitTween.to({opacity: 100}, 50).start()
 
+                                   //Animate HitCircal Spawn
+                                    ComboIndex.opacity = 0
+                                    var ComboTween = new TWEEN.Tween(ComboIndex)
+                                    ComboTween.to({opacity: 100}, 50).start()
+
                                     //Make the approach circal approach
                                     var ApproachTween = new TWEEN.Tween(ApproachCircle.size)
                                     ApproachTween.to({X: (54.4 - 4.48 * MapData.Difficulty.CircleSize) * (Background.size.X/512), Y: (54.4 - 4.48 * MapData.Difficulty.CircleSize) * (Background.size.Y/384)}, lerp(1800, 450, MapData.Difficulty.ApproachRate / 10)).start()
 
                                     world.addobjects(HitCircle)
                                     world.addobjects(ApproachCircle)
+                                    world.addobjects(ComboIndex)
 
                                     ColorComboIndex += 1
 
@@ -174,6 +189,8 @@ function StartGame(Auto) {
                                         HitTween.to({opacity: 0}, 10).start()
                                         var ApproachTween = new TWEEN.Tween(ApproachCircle)
                                         ApproachTween.to({opacity: 0}, 10).start()
+                                        var ComboTween = new TWEEN.Tween(ComboIndex)
+                                        ComboTween.to({opacity: 0}, 10).start()
 
 
                                         setTimeout( () => {
