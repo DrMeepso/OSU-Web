@@ -44,7 +44,7 @@ var MapData = {}
 //Bool is to tell the game that its the bot playing
 StartGame(true)
 
-var Background = new GameMaker.ShapeSprite("BackgroundObject", new GameMaker.Vector2(((512*1.55)/2), ((384*1.55)/2)), new GameMaker.Vector2(512*1.5, 384*1.5), 0, "#000000")
+var Background = new GameMaker.ShapeSprite("BackgroundObject", new GameMaker.Vector2(((512*2.5)/2), ((384*2.5)/2)), new GameMaker.Vector2(512*2, 384*2), 0, "#000000")
 world.addobjects(Background)
 
 var Cursor = new GameMaker.ImageSprite("CursorObject", new GameMaker.Vector2(0, 0), new GameMaker.Vector2(50, 50), 0, `${window.location.href}/Skin/cursor.png`)
@@ -236,7 +236,8 @@ function StartGame(Auto) {
                                             var UUID = uuidv4()
                                             var SliderBody = []
                                             switch(QueuedNotes[0].path.sliderType) {
-                                            
+
+                                                case "perfect":
                                                 case "bezier":
                                                     
                                                     for (let i = 0; i < QueuedNotes[0].pixelLength; i++) {
@@ -255,13 +256,10 @@ function StartGame(Auto) {
                                                         
                                                         world.addobjects(HitCircle)
 
-                                                        
-
                                                     }
                                                     
                                                 break
                                                     
-                                                case "perfect":
                                                 case "linear":
                                                     
                                                     for (let i = 0; i < QueuedNotes[0].pixelLength; i++) {
