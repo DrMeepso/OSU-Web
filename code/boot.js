@@ -44,7 +44,7 @@ var MapData = {}
 //Bool is to tell the game that its the bot playing
 StartGame(true)
 
-var Background = new GameMaker.ShapeSprite("BackgroundObject", new GameMaker.Vector2(((512*2)/2), ((384*2)/2)), new GameMaker.Vector2(512*1.5, 384*1.5), 0, "#000000")
+var Background = new GameMaker.ShapeSprite("BackgroundObject", new GameMaker.Vector2(((512*1.55)/2), ((384*1.55)/2)), new GameMaker.Vector2(512*1.5, 384*1.5), 0, "#000000")
 world.addobjects(Background)
 
 var Cursor = new GameMaker.ImageSprite("CursorObject", new GameMaker.Vector2(0, 0), new GameMaker.Vector2(50, 50), 0, `${window.location.href}/Skin/cursor.png`)
@@ -60,8 +60,8 @@ function UpdateCursorTween(AutoNotes, Song, Action, Auto) {
 
         var MouseTween = new TWEEN.Tween(Cursor)
         Cursor.Tweening = true
-        MouseTween.easing(TWEEN.Easing.Cubic.InOut)
-        MouseTween.to({pos: OSUpxToRealpx(AutoNotes[0].x, AutoNotes[0].y)}, AutoNotes[0].time - (Song.currentTime * 1000)).start()
+        //MouseTween.easing(TWEEN.Easing.Cubic.InOut)
+        MouseTween.to({pos: OSUpxToRealpx(AutoNotes[0].x, AutoNotes[0].y)}, (AutoNotes[0].time - (Song.currentTime * 1000)) - 10).start()
         MouseTween.onStop( () => {Cursor.Tweening = false} )
 
     }
@@ -74,11 +74,35 @@ function OSUpxToRealpx(x,y){
 
 }
 
+function LinCurve(P1,P2,t){
+
+     return new GameMaker.Vector2(lerp(P1.x, P2.x, t), lerp(P1.y, P2.y, t))
+}
+
+function CirCurve(P1,P2,t){
+
+     return new GameMaker.Vector2(lerp(P1.x, P2.x, t), lerp(P1.y, P2.y, t))
+}
+
+function BezCurve(P1,P2,P3,t){
+
+    var abX = lerp(P1.x,P2.x, t)
+    var bcX = lerp(P2.x,P3.x, t)
+    var bezX = lerp(abX,bcX, t)
+
+    var abY = lerp(P1.y,P2.y, t)
+    var bcY = lerp(P2.y,P3.y, t)
+    var bezY = lerp(abY,bcY, t)
+
+     return new GameMaker.Vector2(bezX, bezY)
+
+}
+
 function StartGame(Auto) {
 
     setTimeout(() => {
 
-        fetch(`${window.location.href}/Maps/HONESTY/map.osu`)
+        fetch(`${window.location.href}/Maps/Pumpin' Junkies/map.osu`)
             .then(e => e.text())
             .then(text => {
 
@@ -88,7 +112,7 @@ function StartGame(Auto) {
                         MapData = json
                         console.log(MapData)
 
-                        var Song = new Audio(`${window.location.href}/Maps/HONESTY/song.mp3`)
+                        var Song = new Audio(`${window.location.href}/Maps/Pumpin' Junkies/song.mp3`)
 
                         Song.addEventListener("canplaythrough", event => {
                             /* the audio is now playable; play it if permissions allow */
@@ -125,8 +149,6 @@ function StartGame(Auto) {
 
                                 if ((QueuedNotes[0].time - lerp(1800, 450, MapData.Difficulty.ApproachRate / 10)) < Song.currentTime * 1000) {
 
-                                    //if (QueuedNotes[0].type.type == "spinner") return
-
                                     if (QueuedNotes[0].type.isNewCombo) {
 
                                         ColorCombo += 1
@@ -134,77 +156,177 @@ function StartGame(Auto) {
  
                                     }
 
-                                    AutoNotes.push(QueuedNotes[0])
-                                    UpdateCursorTween(AutoNotes, Song, "Add", Auto)
-                                    var UUID = uuidv4()
-                                    var HitCircle = new GameMaker.ImageSprite("HitObject", OSUpxToRealpx(QueuedNotes[0].x, QueuedNotes[0].y), new GameMaker.Vector2((54.4 - 4.48 * MapData.Difficulty.CircleSize) * (Background.size.X/512), (54.4 - 4.48 * MapData.Difficulty.CircleSize) * (Background.size.Y/384)), 0, `${window.location.href}/Skin/hitcircle.png`)
-                                    var ApproachCircle = new GameMaker.ImageSprite("ApproachObject", OSUpxToRealpx(QueuedNotes[0].x, QueuedNotes[0].y), new GameMaker.Vector2(((54.4 - 4.48 * MapData.Difficulty.CircleSize) * 4) * (Background.size.X/512), ((54.4 - 4.48 * MapData.Difficulty.CircleSize) * 4) * (Background.size.Y/384)), 0, `${window.location.href}/Skin/approachcircle.png`)
-                                    var ComboIndex = new GameMaker.ImageSprite("HitObject", OSUpxToRealpx(QueuedNotes[0].x, QueuedNotes[0].y), new GameMaker.Vector2(((54.4 - 4.48 * MapData.Difficulty.CircleSize) * (Background.size.X/512)) / 3, ((54.4 - 4.48 * MapData.Difficulty.CircleSize) * (Background.size.Y/384)) / 2), 0, ColorComboIndex >= 9 ? `${window.location.href}/Skin/default-9.png` : `${window.location.href}/Skin/default-${ColorComboIndex}.png` )
+                                    switch( QueuedNotes[0].type.type ) {
 
-                                    ComboIndex.pos.Y -= (((54.4 - 4.48 * MapData.Difficulty.CircleSize) * (Background.size.Y/384)) / 2) /6
+                                        case "circle":
 
-                                    console.log(QueuedNotes[0])
+                                            AutoNotes.push(QueuedNotes[0])
+                                            UpdateCursorTween(AutoNotes, Song, "Add", Auto)
+                                    
+                                            var UUID = uuidv4()
+                                            var HitCircle = new GameMaker.ImageSprite("HitObject", OSUpxToRealpx(QueuedNotes[0].x, QueuedNotes[0].y), new GameMaker.Vector2((54.4 - 4.48 * MapData.Difficulty.CircleSize) * (Background.size.X/512), (54.4 - 4.48 * MapData.Difficulty.CircleSize) * (Background.size.Y/384)), 0, `${window.location.href}/Skin/hitcircle.png`)
+                                            var ApproachCircle = new GameMaker.ImageSprite("ApproachObject", OSUpxToRealpx(QueuedNotes[0].x, QueuedNotes[0].y), new GameMaker.Vector2(((54.4 - 4.48 * MapData.Difficulty.CircleSize) * 4) * (Background.size.X/512), ((54.4 - 4.48 * MapData.Difficulty.CircleSize) * 4) * (Background.size.Y/384)), 0, `${window.location.href}/Skin/approachcircle.png`)
+                                            var ComboIndex = new GameMaker.ImageSprite("HitObject", OSUpxToRealpx(QueuedNotes[0].x, QueuedNotes[0].y), new GameMaker.Vector2(((54.4 - 4.48 * MapData.Difficulty.CircleSize) * (Background.size.X/512)) / 3, ((54.4 - 4.48 * MapData.Difficulty.CircleSize) * (Background.size.Y/384)) / 2), 0, ColorComboIndex >= 9 ? `${window.location.href}/Skin/default-9.png` : `${window.location.href}/Skin/default-${ColorComboIndex}.png` )
 
-                                    //Set The UUID of the circals so they can be removed later
-                                    HitCircle.id = UUID
-                                    ApproachCircle.id = UUID
-                                    ComboIndex.id = UUID
+                                            ComboIndex.pos.Y -= (((54.4 - 4.48 * MapData.Difficulty.CircleSize) * (Background.size.Y/384)) / 2) /6
 
-                                    //Set Variables
-                                    HitCircle.Used = false
-                                    HitCircle.Active = true
+                                            //Set The UUID of the circals so they can be removed later
+                                            HitCircle.id = UUID
+                                            ApproachCircle.id = UUID
+                                            ComboIndex.id = UUID
 
-                                    ApproachCircle.parent = HitCircle
+                                            //Set Variables
+                                            HitCircle.Used = false
+                                            HitCircle.Active = true
 
-                                    //Animate HitCircal Spawn
-                                    HitCircle.opacity = 0
-                                    var HitTween = new TWEEN.Tween(HitCircle)
-                                    HitTween.to({opacity: 100}, 50).start()
+                                            ApproachCircle.parent = HitCircle
 
-                                   //Animate HitCircal Spawn
-                                    ComboIndex.opacity = 0
-                                    var ComboTween = new TWEEN.Tween(ComboIndex)
-                                    ComboTween.to({opacity: 100}, 50).start()
+                                            //Animate HitCircal Spawn
+                                            HitCircle.opacity = 0
+                                            var HitTween = new TWEEN.Tween(HitCircle)
+                                            HitTween.to({opacity: 100}, 50).start()
 
-                                    //Make the approach circal approach
-                                    var ApproachTween = new TWEEN.Tween(ApproachCircle.size)
-                                    ApproachTween.to({X: (54.4 - 4.48 * MapData.Difficulty.CircleSize) * (Background.size.X/512), Y: (54.4 - 4.48 * MapData.Difficulty.CircleSize) * (Background.size.Y/384)}, lerp(1800, 450, MapData.Difficulty.ApproachRate / 10)).start()
+                                            //Animate HitCircal Spawn
+                                            ComboIndex.opacity = 0
+                                            var ComboTween = new TWEEN.Tween(ComboIndex)
+                                            ComboTween.to({opacity: 100}, 50).start()
 
-                                    world.addobjects(HitCircle)
-                                    world.addobjects(ApproachCircle)
-                                    world.addobjects(ComboIndex)
+                                            //Make the approach circal approach
+                                            var ApproachTween = new TWEEN.Tween(ApproachCircle.size)
+                                            ApproachTween.to({X: (54.4 - 4.48 * MapData.Difficulty.CircleSize) * (Background.size.X/512), Y: (54.4 - 4.48 * MapData.Difficulty.CircleSize) * (Background.size.Y/384)}, lerp(1800, 450, MapData.Difficulty.ApproachRate / 10)).start()
 
-                                    ColorComboIndex += 1
+                                            world.addobjects(HitCircle)
+                                            world.addobjects(ApproachCircle)
+                                            world.addobjects(ComboIndex)
 
+                                            ColorComboIndex += 1
+
+                                            setTimeout(() => {
+
+                                                if (HitCircle.Used) return
+
+                                                HitCircle.Active = false
+
+                                                //Animate Fade Out
+                                                var HitTween = new TWEEN.Tween(HitCircle)
+                                                HitTween.to({opacity: 0}, 10).start()
+                                                var ApproachTween = new TWEEN.Tween(ApproachCircle)
+                                                ApproachTween.to({opacity: 0}, 10).start()
+                                                var ComboTween = new TWEEN.Tween(ComboIndex)
+                                                ComboTween.to({opacity: 0}, 10).start()
+
+
+                                                setTimeout( () => {
+
+                                                    world.objects = world.objects.filter( e => e.id != UUID )
+                                                    AutoNotes.shift()
+                                                    UpdateCursorTween(AutoNotes, Song, "Remove", Auto)
+
+                                                }, 10)
+
+                                            }, (lerp(1800, 450, MapData.Difficulty.ApproachRate / 10)))
+
+                                        break
+                                            
+                                        case "slider":
+                                            
+                                            console.log(QueuedNotes[0].pixelLength)
+                                            //console.log((QueuedNotes[0].pixelLength / (MapData.Difficulty.SliderMultiplier * 100)))
+                                            
+                                            var UUID = uuidv4()
+                                            var SliderBody = []
+                                            switch(QueuedNotes[0].path.sliderType) {
+                                            
+                                                case "bezier":
+                                                    
+                                                    for (let i = 0; i < QueuedNotes[0].pixelLength; i++) {
+                                                        
+                                                        var Position = BezCurve({x: QueuedNotes[0].x, y: QueuedNotes[0].y},QueuedNotes[0].path.passthrough,QueuedNotes[0].path.end,i/QueuedNotes[0].pixelLength)
+                                                        var HitCircle = new GameMaker.ImageSprite("HitObject", OSUpxToRealpx(Position.X, Position.Y), new GameMaker.Vector2((54.4 - 4.48 * MapData.Difficulty.CircleSize) * (Background.size.X/512), (54.4 - 4.48 * MapData.Difficulty.CircleSize) * (Background.size.Y/384)), 0, `${window.location.href}/Skin/hitcircle.png`)
+                                                        HitCircle.id = UUID
+                                                        
+                                                        SliderBody.push(HitCircle)
+                                                        
+                                                        
+                                                        HitCircle.opacity = 0
+                                                        var HitTween = new TWEEN.Tween(HitCircle)
+                                                        HitTween.delay(i*1)
+                                                        HitTween.to({opacity: 100}, 50 ).start()
+                                                        
+                                                        world.addobjects(HitCircle)
+
+                                                        
+
+                                                    }
+                                                    
+                                                break
+                                                    
+                                                case "perfect":
+                                                case "linear":
+                                                    
+                                                    for (let i = 0; i < QueuedNotes[0].pixelLength; i++) {
+                                                        
+                                                        var Position = LinCurve({x: QueuedNotes[0].x, y: QueuedNotes[0].y},QueuedNotes[0].path.end,i/QueuedNotes[0].pixelLength)
+                                                        var HitCircle = new GameMaker.ImageSprite("HitObject", OSUpxToRealpx(Position.X, Position.Y), new GameMaker.Vector2((54.4 - 4.48 * MapData.Difficulty.CircleSize) * (Background.size.X/512), (54.4 - 4.48 * MapData.Difficulty.CircleSize) * (Background.size.Y/384)), 0, `${window.location.href}/Skin/hitcircle.png`)
+                                                        HitCircle.id = UUID
+                                                        
+                                                        SliderBody.push(HitCircle)
+                                                        
+                                                        HitCircle.opacity = 0
+                                                        var HitTween = new TWEEN.Tween(HitCircle)
+                                                        HitTween.delay(i*1)
+                                                        HitTween.to({opacity: 100}, 50 ).start()
+                                                        
+                                                        world.addobjects(HitCircle)
+
+                                                    }
+                                                    
+                                                break
+                                                    
+
+                                            }
+
+                                            AutoNotes.push(QueuedNotes[0])
+                                            UpdateCursorTween(AutoNotes, Song, "Add", Auto)
+                                            
+                                            var ApproachCircle = new GameMaker.ImageSprite("ApproachObject", OSUpxToRealpx(QueuedNotes[0].x, QueuedNotes[0].y), new GameMaker.Vector2(((54.4 - 4.48 * MapData.Difficulty.CircleSize) * 4) * (Background.size.X/512), ((54.4 - 4.48 * MapData.Difficulty.CircleSize) * 4) * (Background.size.Y/384)), 0, `${window.location.href}/Skin/approachcircle.png`)
+                                            ApproachCircle.id = UUID            
+                                            
+                                            
+                                            var ApproachTween = new TWEEN.Tween(ApproachCircle.size)
+                                            ApproachTween.to({X: (54.4 - 4.48 * MapData.Difficulty.CircleSize) * (Background.size.X/512), Y: (54.4 - 4.48 * MapData.Difficulty.CircleSize) * (Background.size.Y/384)}, lerp(1800, 450, MapData.Difficulty.ApproachRate / 10)).start()
+                                            
+                                            world.addobjects(ApproachCircle)
+                                            setTimeout( () => {
+
+                                                world.objects = world.objects.filter( e => e != ApproachCircle )
+
+                                                setTimeout( () => {
+                                                
+                                                    SliderBody.forEach((obj, index) => {
+                                                    
+                                                        setTimeout( () => {
+                                                        
+                                                            world.objects = world.objects.filter( e => e != obj )
+                                                        
+                                                        } ,index*2)
+                                                    
+                                                    
+                                                    })
+                                                
+                                                }, MapData.Difficulty.SliderMultiplier)
+                                                
+                                                AutoNotes.shift()
+                                                UpdateCursorTween(AutoNotes, Song, "Remove", Auto)
+                                            
+                                            }, (lerp(1800, 450, MapData.Difficulty.ApproachRate / 10)))
+                                            
+                                        break
+
+
+                                    }
+                                    
                                     QueuedNotes.shift()
-
-                                    setTimeout(() => {
-
-                                        if (HitCircle.Used) return
-
-                                        HitCircle.Active = false
-
-                                        //Animate Fade Out
-                                        var HitTween = new TWEEN.Tween(HitCircle)
-                                        HitTween.to({opacity: 0}, 10).start()
-                                        var ApproachTween = new TWEEN.Tween(ApproachCircle)
-                                        ApproachTween.to({opacity: 0}, 10).start()
-                                        var ComboTween = new TWEEN.Tween(ComboIndex)
-                                        ComboTween.to({opacity: 0}, 10).start()
-
-
-                                        setTimeout( () => {
-
-                                            
-                                            world.objects = world.objects.filter( e => e.id != UUID )
-                                            AutoNotes.shift()
-                                            UpdateCursorTween(AutoNotes, Song, "Remove", Auto)
-
-                                            
-
-                                        }, 10)
-
-                                    }, (lerp(1800, 450, MapData.Difficulty.ApproachRate / 10)))
 
                                 }
 
