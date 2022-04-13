@@ -1,11 +1,17 @@
 //https://chimu.moe/docs
 
 var ZIPJS = {}
+var OSUParser = {}
 var FilePicker = document.getElementById("FilePicker")
 var Source = document.getElementById("source")
 var Audio = document.getElementById("audio")
 
 import(`${location.href}libs/ZipJS/lib/zip.js`).then(mod => ZIPJS = mod)
+import(`${location.href}libs/osuParser/index.js`).then(mod => {
+    OSUParser = mod
+    console.log(OSUParser)
+    
+})
 
 function GetBeatMapInfo(file){
 
@@ -32,8 +38,6 @@ function GetBeatMapInfo(file){
 
 FilePicker.addEventListener("change", e => {
 
-    console.log(FilePicker.files)
-
     var reader = new FileReader();
     
     reader.addEventListener('load', (event) => {
@@ -41,9 +45,7 @@ FilePicker.addEventListener("change", e => {
         var zipReader = new ZIPJS.ZipReader(new ZIPJS.Data64URIReader(event.currentTarget.result))
         
         zipReader.getEntries().then(en => {
-        
-            console.log(en.filter( file => file.filename.split(".")[1] == "mp3" ))
-                        
+                                
             en.filter( file => file.filename.split(".")[1] == "osu" ).forEach( e => {
             
                 e.getData(new ZIPJS.TextWriter(),new ZIPJS.TextReader()).then( file => {
@@ -64,7 +66,12 @@ FilePicker.addEventListener("change", e => {
             
             } )
 
-            en[0].getData(new ZIPJS.TextWriter(),new ZIPJS.TextReader()).then( file => {} )
+            en.find( file => file.filename.split(".")[1] == "osu" ).getData(new ZIPJS.TextWriter(),new ZIPJS.TextReader()).then( file => {
+            
+                console.log(file)
+                console.log(OSUParser.parseContent(file))
+            
+            })
         
         })
 
