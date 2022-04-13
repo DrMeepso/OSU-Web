@@ -5,7 +5,7 @@ var FilePicker = document.getElementById("FilePicker")
 var Source = document.getElementById("source")
 var Audio = document.getElementById("audio")
 
-import(`${location.href}ZipJS/lib/zip.js`).then(mod => ZIPJS = mod)
+import(`${location.href}libs/ZipJS/lib/zip.js`).then(mod => ZIPJS = mod)
 
 function GetBeatMapInfo(file){
 
