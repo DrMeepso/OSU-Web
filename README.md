@@ -8,3 +8,4 @@ A recreation of OSU! written in JavaScript and made for the web
  - https://github.com/DrMeepso/GameMaker.JS - Rendering Library
  - https://github.com/nojhamster/osu-parser - .osu Parser
  - https://github.com/gildas-lormeau/zip.js - .zip/.osz File Reader
+ - https://gitlab.com/MrHeliX/star-rating-calculator - Star Rating Calculator
