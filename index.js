@@ -8,33 +8,8 @@ var Audio = document.getElementById("audio")
 
 import(`${location.href}libs/ZipJS/lib/zip.js`).then(mod => ZIPJS = mod)
 import(`${location.href}libs/osuParser/index.js`).then(mod => {
-    OSUParser = mod
-    console.log(OSUParser)
-    
+    OSUParser = mod    
 })
-
-function GetBeatMapInfo(file){
-
-    var BeatmapInfo = {}
-    
-    file.replaceAll("\n", '').split("]").forEach( (Sec, SecIndex) => {
-    
-        if (Sec.includes("osu file format")) return
-
-        Sec.split("\r").filter( e => !e.includes("[") ).forEach( (e,i) => {
-                
-            if (e == "" || SecIndex > 4) return
-        
-            var Values = e.split(":")
-            BeatmapInfo[Values[0]] = Values[1]
-        
-        })
-    
-    })
-    
-    return BeatmapInfo
-    
-}
 
 FilePicker.addEventListener("change", e => {
 
@@ -44,13 +19,15 @@ FilePicker.addEventListener("change", e => {
         
         var zipReader = new ZIPJS.ZipReader(new ZIPJS.Data64URIReader(event.currentTarget.result))
         
-        zipReader.getEntries().then(en => {
-                                
+        zipReader.getEntries().then(en => {        
+            
             en.filter( file => file.filename.split(".")[1] == "osu" ).forEach( e => {
             
                 e.getData(new ZIPJS.TextWriter(),new ZIPJS.TextReader()).then( file => {
             
-                    console.log(GetBeatMapInfo(file))
+                    
+                    var Map = OSUParser.parseContent(file)
+                    console.log(Map.metadata.Version)
             
                 })
             
@@ -68,8 +45,11 @@ FilePicker.addEventListener("change", e => {
 
             en.find( file => file.filename.split(".")[1] == "osu" ).getData(new ZIPJS.TextWriter(),new ZIPJS.TextReader()).then( file => {
             
-                console.log(file)
-                console.log(OSUParser.parseContent(file))
+                var Mapdata = OSUParser.parseContent(file)
+                console.log(Mapdata)
+                
+                CalculateStarRating(Mapdata.metadata.BeatmapID).then( console.log )
+                
             
             })
         
@@ -80,3 +60,29 @@ FilePicker.addEventListener("change", e => {
     reader.readAsDataURL(FilePicker.files[0]);
 
 })
+
+function CalculateStarRating(MapID){
+    
+    return new Promise( (res, rej) => {
+
+        fetch("https://OSUWeb-Server.drmeepso.repl.co/stars", {method: "POST", body: JSON.stringify({ "mapID": MapID })})
+        .then( e => e.json() )
+        .then( json => {
+            
+            if(json.Error == undefined) {
+            
+                res( json )
+            
+            } else {
+            
+                rej( json )
+            
+            }
+            
+            
+        }) 
+    
+    })
+    
+
+}
