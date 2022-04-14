@@ -4,7 +4,6 @@ var curves  = {}
 import('./curves.js').then( mod => {
 
     curves = mod
-    console.log(mod)
 
 })
 var Bezier  = curves.Bezier;
@@ -41,14 +40,14 @@ const getEndPoint = function (sliderType, sliderLength, points) {
           continue;
         }
 
-        if (point[0] == previous[0] && point[1] == previous[1]) {
-          bezier        = new curves.Bezier(pts.splice(0, i));
-          sliderLength -= bezier.pxlength;
-          i = 0;
-          l = pts.length;
+        if (point[0] == previous[0] && point[1] == previous[1]) {            
+            bezier        = new curves.Bezier(pts.splice(0, i));
+            sliderLength -= bezier.pxlength;
+            i = 0;
+            l = pts.length;
         }
 
-        previous = point;
+            previous = point;
       }
 
       bezier = new curves.Bezier(pts);

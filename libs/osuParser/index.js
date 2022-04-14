@@ -7,15 +7,28 @@ import('./slidercalc.js').then( mod => {
 
 })
 
+      //difficulty
+      //metadata
+      //editor
+      //general
+
 function beatmapParser() {
   var beatmap = {
-    nbCircles: 0,
-    nbSliders: 0,
-    nbSpinners: 0,
+    general: {},
+    editor: {},
+    metadata: {},
+    difficulty: {},
+    misc: {
+    
+        nbCircles: 0,
+        nbSliders: 0,
+        nbSpinners: 0
+    
+    },
     timingPoints: [],
     breakTimes: [],
     hitObjects: [],
-    combos: []
+    colors: []
   };
 
   var osuSection;
@@ -26,6 +39,7 @@ function beatmapParser() {
   var timingLines    = [];
   var objectLines    = [];
   var eventsLines    = [];
+  var colorLines     = [];
   var sectionReg     = /^\[([a-zA-Z0-9]+)\]$/;
   var keyValReg      = /^([a-zA-Z0-9]+)[ ]*:[ ]*(.+)$/;
   var curveTypes     = {
@@ -120,8 +134,8 @@ function beatmapParser() {
       if (timingPoint.beatLength > 0) {
         // If positive, beatLength is the length of a beat in milliseconds
         var bpm        = Math.round(60000 / timingPoint.beatLength);
-        beatmap.bpmMin = beatmap.bpmMin ? Math.min(beatmap.bpmMin, bpm) : bpm;
-        beatmap.bpmMax = beatmap.bpmMax ? Math.max(beatmap.bpmMax, bpm) : bpm;
+        beatmap.misc.bpmMin = beatmap.misc.bpmMin ? Math.min(beatmap.misc.bpmMin, bpm) : bpm;
+        beatmap.misc.bpmMax = beatmap.misc.bpmMax ? Math.max(beatmap.misc.bpmMax, bpm) : bpm;
         timingPoint.bpm    = bpm;
       } else {
         // If negative, beatLength is a velocity factor
@@ -172,18 +186,18 @@ function beatmapParser() {
      */
     if ((objectType & 1) == 1) {
       // Circle
-      beatmap.nbCircles++;
+      beatmap.misc.nbCircles++;
       hitObject.objectName = 'circle';
       hitObject.additions  = parseAdditions(members[5]);
     } else if ((objectType & 8) == 8) {
       // Spinner
-      beatmap.nbSpinners++;
+      beatmap.misc.nbSpinners++;
       hitObject.objectName = 'spinner';
       hitObject.endTime    = parseInt(members[5]);
       hitObject.additions  = parseAdditions(members[6]);
     } else if ((objectType & 2) == 2) {
       // Slider
-      beatmap.nbSliders++;
+      beatmap.misc.nbSliders++;
       hitObject.objectName  = 'slider';
       hitObject.repeatCount = parseInt(members[6]);
       hitObject.pixelLength = parseInt(members[7]);
@@ -285,9 +299,9 @@ function beatmapParser() {
       var bgName = members[2].trim();
 
       if (bgName.charAt(0) == '"' && bgName.charAt(bgName.length - 1) == '"') {
-        beatmap.bgFilename = bgName.substring(1, bgName.length - 1);
+        beatmap.general.bgFilename = bgName.substring(1, bgName.length - 1);
       } else {
-        beatmap.bgFilename = bgName;
+        beatmap.general.bgFilename = bgName;
       }
     } else if (members[0] == '2' && /^[0-9]+$/.test(members[1]) && /^[0-9]+$/.test(members[2])) {
       beatmap.breakTimes.push({
@@ -311,8 +325,8 @@ function beatmapParser() {
     });
 
     if (firstObject && lastObject) {
-      beatmap.totalTime    = Math.floor(lastObject.startTime / 1000);
-      beatmap.drainingTime = Math.floor((lastObject.startTime - firstObject.startTime - totalBreakTime) / 1000);
+      beatmap.misc.totalTime    = Math.floor(lastObject.startTime);
+      beatmap.misc.drainingTime = Math.floor((lastObject.startTime - firstObject.startTime - totalBreakTime));
     } else {
       beatmap.totalTime    = 0;
       beatmap.drainingTime = 0;
@@ -326,8 +340,8 @@ function beatmapParser() {
     if (beatmap.timingPoints.length === 0) { return; }
 
     var maxCombo         = 0;
-    var sliderMultiplier = parseFloat(beatmap.SliderMultiplier);
-    var sliderTickRate   = parseInt(beatmap.SliderTickRate, 10);
+    var sliderMultiplier = parseFloat(beatmap.difficulty.SliderMultiplier);
+    var sliderTickRate   = parseInt(beatmap.difficulty.SliderTickRate, 10);
 
     var timingPoints  = beatmap.timingPoints;
     var currentTiming = timingPoints[0];
@@ -354,9 +368,17 @@ function beatmapParser() {
       }
     });
 
-    beatmap.maxCombo = maxCombo;
+    beatmap.misc.maxCombo = maxCombo;
   };
 
+  var parseColor = function (line) {
+  
+    var colorArray = line.split(":")[1].split(" ")[1].split(",")
+    beatmap.colors.push({"R": colorArray[0], "G": colorArray[1], "B": colorArray[2]})
+  
+  }
+    
+    
   /**
    * Read a single line, parse when key/value, store when further parsing needed
    * @param  {String|Buffer} line
@@ -370,7 +392,7 @@ function beatmapParser() {
       osuSection = match[1].toLowerCase();
       return;
     }
-
+      
     switch (osuSection) {
     case 'timingpoints':
       timingLines.push(line);
@@ -381,11 +403,14 @@ function beatmapParser() {
     case 'events':
       eventsLines.push(line);
       break;
+    case 'colours':
+      colorLines.push(line)  
+      break
     default:
       if (!osuSection) {
         match = /^osu file format (v[0-9]+)$/.exec(line);
         if (match) {
-          beatmap.fileFormat = match[1];
+          beatmap.misc.fileFormat = match[1];
           return;
         }
       }
@@ -394,7 +419,7 @@ function beatmapParser() {
        * Apart from events, timingpoints and hitobjects sections, lines are "key: value"
        */
       match = keyValReg.exec(line);
-      if (match) { beatmap[match[1]] = match[2]; }
+      if (match) { beatmap[osuSection][match[1]] = match[2]; }
     }
   };
 
@@ -407,6 +432,8 @@ function beatmapParser() {
       beatmap.tagsArray = beatmap.Tags.split(' ');
     }
 
+    colorLines.forEach(parseColor)
+      
     eventsLines.forEach(parseEvent);
     beatmap.breakTimes.sort(function (a, b) { return (a.startTime > b.startTime ? 1 : -1); });
 
